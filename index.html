@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linux Troubleshooting Runbook</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <nav class="sidebar">
+
+    <div class="sidebar-logo">
+      <span class="logo-icon">🐧</span>
+      <div>
+        <h1>Linux Runbook</h1>
+        <span>L1 / L2 Support Reference</span>
+      </div>
+    </div>
+
+    <div class="sidebar-search">
+      <input id="sidebar-search" type="text" placeholder="Search scenarios…" />
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item" data-page="home"><span class="nav-icon">🏠</span> Home</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Scenarios</div>
+      <div class="nav-item" data-page="filesystem">
+        <span class="nav-icon">💾</span> Filesystem
+        <span class="nav-count">5</span>
+      </div>
+      <div class="nav-item" data-page="processes">
+        <span class="nav-icon">⚙️</span> Processes
+        <span class="nav-count">5</span>
+      </div>
+      <div class="nav-item" data-page="networking">
+        <span class="nav-icon">🌐</span> Networking
+        <span class="nav-count">5</span>
+      </div>
+      <div class="nav-item" data-page="services">
+        <span class="nav-icon">🔧</span> Services &amp; Cron
+        <span class="nav-count">5</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <div class="nav-item" data-page="oneliners">
+        <span class="nav-icon">⚡</span> Bash One-liners
+      </div>
+      <div class="nav-item" data-page="mistakes">
+        <span class="nav-icon">⚠️</span> Common Mistakes
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- ── Main content ────────────────────────────────── -->
+  <main class="content">
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- HOME                                             -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="page active" id="home">
+      <div class="page-header">
+        <h2>🐧 Linux Troubleshooting Runbook</h2>
+        <p>A searchable L1/L2 support knowledge base covering real-world Linux incidents with diagnosis steps, commands, and resolutions.</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><div class="num">20</div><div class="label">Scenarios</div></div>
+        <div class="stat"><div class="num">4</div><div class="label">Categories</div></div>
+        <div class="stat"><div class="num">40+</div><div class="label">CLI Commands</div></div>
+        <div class="stat"><div class="num">8</div><div class="label">Common Mistakes</div></div>
+      </div>
+
+      <div class="home-grid">
+        <div class="home-card" data-page="filesystem">
+          <div class="card-icon">💾</div>
+          <h3>Filesystem</h3>
+          <p>Disk full, permission errors, inode exhaustion, mount issues</p>
+        </div>
+        <div class="home-card" data-page="processes">
+          <div class="card-icon">⚙️</div>
+          <h3>Processes</h3>
+          <p>High CPU, zombies, OOM kills, open file limits</p>
+        </div>
+        <div class="home-card" data-page="networking">
+          <div class="card-icon">🌐</div>
+          <h3>Networking</h3>
+          <p>Ports unreachable, DNS failures, firewall blocks, interface down</p>
+        </div>
+        <div class="home-card" data-page="services">
+          <div class="card-icon">🔧</div>
+          <h3>Services &amp; Cron</h3>
+          <p>Systemd failures, restart loops, cron not firing</p>
+        </div>
+        <div class="home-card" data-page="oneliners">
+          <div class="card-icon">⚡</div>
+          <h3>Bash One-liners</h3>
+          <p>Quick triage commands reusable by L1 staff</p>
+        </div>
+        <div class="home-card" data-page="mistakes">
+          <div class="card-icon">⚠️</div>
+          <h3>Common Mistakes</h3>
+          <p>Misconfigs that cause 80% of first-response tickets</p>
+        </div>
+      </div>
+
+      <h3 style="font-size:14px; color:var(--muted); margin:28px 0 12px;">How to use this runbook</h3>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+        <li style="font-size:14px; color:var(--text);">① Use the sidebar or search bar to locate a scenario by symptom or keyword.</li>
+        <li style="font-size:14px; color:var(--text);">② Click a scenario card to expand diagnosis steps, commands, and resolution.</li>
+        <li style="font-size:14px; color:var(--text);">③ Run commands on the affected host in the order shown.</li>
+        <li style="font-size:14px; color:var(--text);">④ If unresolved after L1 steps, escalate with the output collected.</li>
+      </ul>
+    </div>
+
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- FILESYSTEM                                       -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="page" id="filesystem">
+      <div class="page-header">
+        <h2>💾 Filesystem Scenarios</h2>
+        <p>Disk space alerts, permission errors, inode exhaustion, large-file hunts, and mount-point failures.</p>
+      </div>
+
+      <!-- S1 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">FS-01</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Disk Space Alert — Partition at 90%+ Usage</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">df · du · find</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Application writes fail with <code>No space left on device</code>. Monitoring alert fires for partition &gt;90% full. Log rotation stops.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check overall disk usage per partition.
+              <pre><code>df -hT</code></pre>
+            </div></li>
+            <li><div>Identify the top 10 directories consuming space.
+              <pre><code>du -ahx / 2>/dev/null | sort -rh | head -20</code></pre>
+            </div></li>
+            <li><div>Find large files (over 500 MB) across the filesystem.
+              <pre><code>find / -xdev -type f -size +500M -exec ls -lh {} \; 2>/dev/null</code></pre>
+            </div></li>
+            <li><div>Check for deleted-but-open files still holding space (common with log handles).
+              <pre><code>lsof +L1 | grep -i deleted</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <p>Archive or delete identified large files. If log files are open by processes, restart the process so the file handle is released. For recurring issues, implement logrotate policies.</p>
+          <pre><code># Clear old journal logs safely (keep last 7 days)
+sudo journalctl --vacuum-time=7d
+
+# Remove old compressed logs
+sudo find /var/log -name "*.gz" -mtime +30 -delete
+
+# Restart service to release deleted-file handles
+sudo systemctl restart &lt;service-name&gt;</code></pre>
+        </div>
+      </div>
+
+      <!-- S2 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">FS-02</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Permission Denied — User Cannot Access File or Directory</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">chmod · chown · stat</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>User gets <code>Permission denied</code> when reading, writing, or executing a file. Service fails to read its config or write to its data directory.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check the file's permissions and ownership.
+              <pre><code>stat /path/to/file
+ls -la /path/to/file</code></pre>
+            </div></li>
+            <li><div>Check what user/group the process or shell is running as.
+              <pre><code>whoami
+id
+ps aux | grep &lt;process-name&gt;</code></pre>
+            </div></li>
+            <li><div>Verify parent directory permissions (execute bit needed to traverse).
+              <pre><code>ls -la /path/to/</code></pre>
+            </div></li>
+            <li><div>Check SELinux or AppArmor denials if standard permissions look correct.
+              <pre><code>sudo ausearch -m avc -ts recent   # SELinux
+sudo dmesg | grep apparmor        # AppArmor</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Fix ownership
+sudo chown user:group /path/to/file
+
+# Fix permissions (files: 644, dirs: 755 as baseline)
+sudo chmod 644 /path/to/file
+sudo chmod 755 /path/to/dir
+
+# Recursively fix a directory tree
+sudo chown -R www-data:www-data /var/www/html
+sudo chmod -R 755 /var/www/html</code></pre>
+        </div>
+      </div>
+
+      <!-- S3 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">FS-03</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Inode Exhaustion — No Space Left Despite Free Disk</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">df -i · find</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p><code>No space left on device</code> errors even though <code>df -h</code> shows ample free space. File creation fails. Often caused by millions of small temp files or mail queue entries.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Confirm inode exhaustion (look for 100% under <code>IUse%</code>).
+              <pre><code>df -ih</code></pre>
+            </div></li>
+            <li><div>Find the directory with the most files.
+              <pre><code>find / -xdev -printf '%h\n' 2>/dev/null | sort | uniq -c | sort -rn | head -20</code></pre>
+            </div></li>
+            <li><div>Count files in suspected directories.
+              <pre><code>ls /tmp | wc -l
+ls /var/spool/postfix/maildrop | wc -l</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Remove temp files older than 1 day
+sudo find /tmp -mtime +1 -delete
+
+# Clear mail queue if postfix is the culprit
+sudo postsuper -d ALL deferred
+
+# For PHP session file buildup
+sudo find /var/lib/php/sessions -type f -mtime +1 -delete</code></pre>
+        </div>
+      </div>
+
+      <!-- S4 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">FS-04</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Read-only Filesystem — Writes Failing After Crash</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">dmesg · fsck · mount</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>All write operations fail with <code>Read-only file system</code>. Typically happens after an unclean shutdown or I/O errors that caused the kernel to remount read-only for data safety.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Confirm the filesystem is mounted read-only.
+              <pre><code>mount | grep "ro,"
+cat /proc/mounts</code></pre>
+            </div></li>
+            <li><div>Check kernel I/O error messages.
+              <pre><code>sudo dmesg | grep -iE "error|I/O|remount|read-only" | tail -30</code></pre>
+            </div></li>
+            <li><div>Check filesystem journal for corruption clues.
+              <pre><code>sudo tune2fs -l /dev/sda1 | grep -i "mount\|check"</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Attempt live remount read-write (only if no hardware errors)
+sudo mount -o remount,rw /
+
+# If there are journal errors, unmount and run fsck (requires reboot)
+# Schedule fsck at next boot:
+sudo touch /forcefsck
+sudo reboot
+
+# Or force fsck on a specific device (unmounted):
+sudo fsck -y /dev/sda1</code></pre>
+        </div>
+      </div>
+
+      <!-- S5 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">FS-05</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Mount Point Failure — Filesystem Not Mounted at Boot</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">fstab · mount · blkid</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Expected directory is empty after reboot. Application cannot find its data. Service fails to start because its data volume is not mounted. <code>/etc/fstab</code> entry may be misconfigured.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check currently mounted filesystems.
+              <pre><code>mount | column -t
+lsblk -f</code></pre>
+            </div></li>
+            <li><div>Verify the device UUID matches the fstab entry.
+              <pre><code>sudo blkid
+cat /etc/fstab</code></pre>
+            </div></li>
+            <li><div>Check systemd mount unit failures.
+              <pre><code>systemctl --failed
+sudo journalctl -u "*.mount" --since "1 hour ago"</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Mount all filesystems in fstab (safe dry-run first)
+sudo mount -a --verbose
+
+# Fix a UUID mismatch in /etc/fstab
+# 1. Get correct UUID:
+sudo blkid /dev/sdb1
+# 2. Edit fstab to update UUID:
+sudo nano /etc/fstab
+# UUID=&lt;correct-uuid&gt;  /data  ext4  defaults  0  2
+
+# Test fstab syntax without rebooting:
+sudo findmnt --verify</code></pre>
+        </div>
+      </div>
+
+    </div><!-- /filesystem -->
+
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- PROCESSES                                        -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="page" id="processes">
+      <div class="page-header">
+        <h2>⚙️ Process Scenarios</h2>
+        <p>High CPU processes, hangs, zombie cleanup, OOM kills, and open-file-descriptor limits.</p>
+      </div>
+
+      <!-- S6 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">PR-01</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">High CPU — System Load Spike, Identifying the Offender</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">top · ps · strace</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Server load average exceeds CPU count. Applications become sluggish. Monitoring alert fires on CPU &gt;85% sustained. SSH response is slow.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Get an instant top-process snapshot sorted by CPU.
+              <pre><code>top -b -n1 | head -20
+# or
+ps aux --sort=-%cpu | head -15</code></pre>
+            </div></li>
+            <li><div>Check load average versus CPU count.
+              <pre><code>uptime
+nproc</code></pre>
+            </div></li>
+            <li><div>Get a thread-level breakdown for the suspect PID.
+              <pre><code>top -H -p &lt;PID&gt;</code></pre>
+            </div></li>
+            <li><div>See what system calls the process is making.
+              <pre><code>sudo strace -p &lt;PID&gt; -c -f 2>&1 | head -30</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Renice a runaway process to lower its priority
+sudo renice +10 -p &lt;PID&gt;
+
+# Kill if confirmed runaway (SIGTERM first, then SIGKILL)
+kill -15 &lt;PID&gt;
+sleep 3
+kill -9 &lt;PID&gt;
+
+# Investigate if it's a recurring scheduled task
+sudo crontab -l
+sudo crontab -l -u www-data</code></pre>
+        </div>
+      </div>
+
+      <!-- S7 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">PR-02</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Zombie Processes — Defunct Entries Accumulating</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-low">Low</span>
+              <span class="tag tag-category">ps · kill · pstree</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p><code>ps aux</code> shows processes with state <code>Z</code> (defunct/zombie). If zombie count is large it can exhaust the PID table. Usually indicates a bug in the parent process (not calling wait()).</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Count and list zombie processes.
+              <pre><code>ps aux | awk '$8 == "Z" { print }'
+ps aux | grep -c "defunct"</code></pre>
+            </div></li>
+            <li><div>Find the parent process (PPID) that is not reaping children.
+              <pre><code>ps -eo pid,ppid,stat,cmd | awk '$3 ~ /Z/'
+pstree -p | grep defunct</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># You cannot kill a zombie directly — kill the parent process.
+# 1. Find parent PID:
+ps -o ppid= -p &lt;zombie-PID&gt;
+
+# 2. Send SIGCHLD to parent (asks it to reap children):
+kill -SIGCHLD &lt;parent-PID&gt;
+
+# 3. If parent ignores SIGCHLD, restart the parent service:
+sudo systemctl restart &lt;service-name&gt;
+
+# 4. Last resort — kill the parent (ensure it is safe to restart):
+kill -9 &lt;parent-PID&gt;</code></pre>
+        </div>
+      </div>
+
+      <!-- S8 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">PR-03</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">OOM Kill — Process Terminated by Out-of-Memory Killer</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">dmesg · journalctl · free</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Service suddenly disappears. No graceful shutdown log. <code>dmesg</code> contains <em>Out of memory: Kill process</em> entries. Often happens at peak load or during memory leaks.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Confirm OOM kill in kernel messages.
+              <pre><code>sudo dmesg | grep -i "oom\|killed\|out of memory" | tail -20</code></pre>
+            </div></li>
+            <li><div>Check systemd journal for the time of death.
+              <pre><code>sudo journalctl -k --since "1 hour ago" | grep -i oom</code></pre>
+            </div></li>
+            <li><div>Review current memory usage and which process is the largest.
+              <pre><code>free -h
+ps aux --sort=-%mem | head -15</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Short-term: restart the killed service
+sudo systemctl restart &lt;service-name&gt;
+
+# Add swap space if system has none (emergency measure):
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+# Make permanent:
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+# Tune OOM score to protect critical processes:
+echo -1000 | sudo tee /proc/&lt;PID&gt;/oom_score_adj</code></pre>
+        </div>
+      </div>
+
+      <!-- S9 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">PR-04</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Process Won't Start — Binary or Dependency Missing</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">which · ldd · strace</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Executing a binary returns <code>command not found</code>, <code>No such file or directory</code>, or <code>error while loading shared libraries</code>. Service fails to start with exit code 127 or 1.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check if the binary exists and is executable.
+              <pre><code>which java
+ls -la /usr/bin/java
+file /usr/bin/java</code></pre>
+            </div></li>
+            <li><div>Check shared library dependencies.
+              <pre><code>ldd /path/to/binary</code></pre>
+            </div></li>
+            <li><div>Trace the startup to see exactly where it fails.
+              <pre><code>sudo strace -e trace=openat /path/to/binary 2>&1 | grep "ENOENT"</code></pre>
+            </div></li>
+            <li><div>Check if a required environment variable is missing.
+              <pre><code>printenv | grep -i java
+printenv PATH</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Install missing library
+sudo apt-get install &lt;package&gt;
+
+# Update library cache after manual install
+sudo ldconfig
+
+# Add missing PATH entry (session):
+export PATH=$PATH:/opt/custom/bin
+
+# Persistent PATH fix in service unit:
+sudo systemctl edit &lt;service-name&gt;
+# Add under [Service]:
+# Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"</code></pre>
+        </div>
+      </div>
+
+      <!-- S10 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">PR-05</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Too Many Open Files — ulimit Exhaustion</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">lsof · ulimit · limits.conf</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Application logs show <code>Too many open files</code>. New connections refused. Java applications throw <code>java.io.IOException: Too many open files</code>. Commonly affects high-traffic web servers or databases.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check current limits for the running process.
+              <pre><code>cat /proc/&lt;PID&gt;/limits | grep "open files"
+ulimit -n</code></pre>
+            </div></li>
+            <li><div>Count actual open file descriptors for the process.
+              <pre><code>ls /proc/&lt;PID&gt;/fd | wc -l
+lsof -p &lt;PID&gt; | wc -l</code></pre>
+            </div></li>
+            <li><div>Find which process has the most open files system-wide.
+              <pre><code>lsof | awk '{print $2}' | sort | uniq -c | sort -rn | head -10</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Raise limit for current session immediately:
+ulimit -n 65535
+
+# Permanent system-wide increase in /etc/security/limits.conf:
+sudo tee -a /etc/security/limits.conf &lt;&lt; EOF
+*    soft nofile 65535
+*    hard nofile 65535
+EOF
+
+# For systemd services, set in unit override:
+sudo systemctl edit &lt;service-name&gt;
+# Add under [Service]:
+# LimitNOFILE=65535</code></pre>
+        </div>
+      </div>
+
+    </div><!-- /processes -->
+
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- NETWORKING                                       -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="page" id="networking">
+      <div class="page-header">
+        <h2>🌐 Networking Scenarios</h2>
+        <p>Port unreachable, DNS failures, network interface issues, firewall blocks, and port conflicts.</p>
+      </div>
+
+      <!-- S11 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">NET-01</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Service Unreachable — Port Not Listening</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">ss · netstat · curl</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Client gets <code>Connection refused</code> or times out. Health check fails. The service may have crashed or is bound to the wrong interface/port.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check whether anything is listening on the expected port.
+              <pre><code>ss -tlnp | grep &lt;PORT&gt;
+# or
+sudo netstat -tlnp | grep &lt;PORT&gt;</code></pre>
+            </div></li>
+            <li><div>Test connectivity from the server itself.
+              <pre><code>curl -v http://localhost:&lt;PORT&gt;
+telnet localhost &lt;PORT&gt;</code></pre>
+            </div></li>
+            <li><div>Check whether the service is running.
+              <pre><code>sudo systemctl status &lt;service-name&gt;</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Restart the service
+sudo systemctl restart &lt;service-name&gt;
+
+# If service binds to 127.0.0.1 instead of 0.0.0.0, edit config:
+# e.g. for nginx: listen 0.0.0.0:80;
+# e.g. for Spring Boot: server.address=0.0.0.0
+
+# Verify after fix:
+ss -tlnp | grep &lt;PORT&gt;</code></pre>
+        </div>
+      </div>
+
+      <!-- S12 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">NET-02</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">DNS Resolution Failure — Cannot Resolve Hostnames</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">dig · nslookup · resolv.conf</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p><code>curl: (6) Could not resolve host</code>. Application cannot connect to external APIs or databases by hostname. <code>ping google.com</code> fails but <code>ping 8.8.8.8</code> succeeds.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Test basic resolution.
+              <pre><code>dig google.com
+nslookup google.com
+host google.com</code></pre>
+            </div></li>
+            <li><div>Check which DNS servers are configured.
+              <pre><code>cat /etc/resolv.conf
+systemd-resolve --status | grep DNS</code></pre>
+            </div></li>
+            <li><div>Test resolution against a known-good resolver directly.
+              <pre><code>dig @8.8.8.8 google.com</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># If /etc/resolv.conf is empty or wrong, set a DNS server:
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
+
+# Flush systemd-resolved cache:
+sudo systemd-resolve --flush-caches
+
+# Restart the resolver service:
+sudo systemctl restart systemd-resolved
+
+# For Docker containers — check the container's DNS:
+docker exec -it &lt;container&gt; cat /etc/resolv.conf</code></pre>
+        </div>
+      </div>
+
+      <!-- S13 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">NET-03</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Network Interface Down — No Connectivity After Reboot</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">ip · ifconfig · nmcli</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Server is unreachable after reboot. No IP address assigned. <code>ip addr</code> shows interface in DOWN state. Often caused by a misconfigured netplan or interface config.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>List all interfaces and their state.
+              <pre><code>ip link show
+ip addr show</code></pre>
+            </div></li>
+            <li><div>Check routing table.
+              <pre><code>ip route show</code></pre>
+            </div></li>
+            <li><div>Look for interface-related errors in kernel log.
+              <pre><code>sudo dmesg | grep -iE "eth|ens|link|network" | tail -20</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Bring interface up manually (temporary):
+sudo ip link set eth0 up
+sudo dhclient eth0
+
+# For Ubuntu with Netplan — check and apply config:
+cat /etc/netplan/*.yaml
+sudo netplan try
+sudo netplan apply
+
+# For NetworkManager-based systems:
+nmcli device status
+nmcli device connect eth0</code></pre>
+        </div>
+      </div>
+
+      <!-- S14 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">NET-04</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Port Binding Conflict — Address Already in Use</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">ss · fuser · lsof</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Service fails to start with <code>Address already in use (EADDRINUSE)</code>. Often happens when a previous instance did not shut down cleanly, or two services are configured on the same port.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Find which process is using the port.
+              <pre><code>sudo ss -tlnp | grep :&lt;PORT&gt;
+sudo fuser -n tcp &lt;PORT&gt;
+sudo lsof -i :&lt;PORT&gt;</code></pre>
+            </div></li>
+            <li><div>Identify the process by PID.
+              <pre><code>ps -p &lt;PID&gt; -o pid,cmd</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Option 1 — Kill the conflicting process (if stale):
+sudo kill -9 &lt;PID&gt;
+
+# Option 2 — Change the port in the service config and restart:
+# e.g. for Spring Boot: server.port=8081
+
+# Option 3 — Check if a previous instance is still tracked by systemd:
+sudo systemctl stop &lt;old-service-name&gt;
+sudo systemctl start &lt;new-service-name&gt;</code></pre>
+        </div>
+      </div>
+
+      <!-- S15 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">NET-05</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Firewall Blocking Connection — iptables / ufw Drop</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">ufw · iptables · tcpdump</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Connection times out (not refused — the packet is silently dropped). Service is listening on the port locally but remote clients cannot reach it. <code>ufw status</code> may show the rule is missing.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check ufw status and active rules.
+              <pre><code>sudo ufw status verbose</code></pre>
+            </div></li>
+            <li><div>Check raw iptables chains.
+              <pre><code>sudo iptables -L -n -v | grep -E "DROP|REJECT|&lt;PORT&gt;"</code></pre>
+            </div></li>
+            <li><div>Capture packets to see if they arrive at the interface.
+              <pre><code>sudo tcpdump -i any port &lt;PORT&gt; -nn</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Allow a port through ufw:
+sudo ufw allow &lt;PORT&gt;/tcp
+sudo ufw reload
+
+# Allow with source restriction:
+sudo ufw allow from 10.0.0.0/8 to any port &lt;PORT&gt;
+
+# iptables: insert ACCEPT rule before a DROP:
+sudo iptables -I INPUT -p tcp --dport &lt;PORT&gt; -j ACCEPT
+
+# Verify:
+curl -v http://&lt;server-ip&gt;:&lt;PORT&gt;</code></pre>
+        </div>
+      </div>
+
+    </div><!-- /networking -->
+
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- SERVICES & CRON                                  -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="page" id="services">
+      <div class="page-header">
+        <h2>🔧 Services &amp; Cron Scenarios</h2>
+        <p>Systemd service failures, restart loops, cron job problems, dependency issues, and log flooding.</p>
+      </div>
+
+      <!-- S16 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">SVC-01</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Systemd Service Failed to Start — ExecStart Error</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">systemctl · journalctl</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Service shows <code>failed</code> status in <code>systemctl</code>. Application is not running. Dashboard or health endpoint returns 503. Logs may show exit code 1 or 2.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check service status and last exit code.
+              <pre><code>sudo systemctl status &lt;service-name&gt;</code></pre>
+            </div></li>
+            <li><div>Read the full service log since last boot.
+              <pre><code>sudo journalctl -u &lt;service-name&gt; -n 100 --no-pager</code></pre>
+            </div></li>
+            <li><div>Check the unit file for configuration issues.
+              <pre><code>sudo systemctl cat &lt;service-name&gt;</code></pre>
+            </div></li>
+            <li><div>Validate the unit file syntax.
+              <pre><code>sudo systemd-analyze verify /etc/systemd/system/&lt;service-name&gt;.service</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Fix the unit file or config, then reload the daemon and restart:
+sudo systemctl daemon-reload
+sudo systemctl restart &lt;service-name&gt;
+
+# Watch live logs during startup to catch the failure point:
+sudo journalctl -u &lt;service-name&gt; -f &amp;
+sudo systemctl start &lt;service-name&gt;</code></pre>
+        </div>
+      </div>
+
+      <!-- S17 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">SVC-02</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Service Keeps Restarting — Restart Loop (CrashLoop)</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-high">High</span>
+              <span class="tag tag-category">journalctl · systemctl</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p><code>systemctl status</code> shows "activating" or rapid start/stop cycles. Service enters systemd's throttle state. Log shows repeated startup then immediate failure.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check how many times it has been restarted.
+              <pre><code>systemctl show &lt;service-name&gt; | grep -i "NRestarts\|ActiveState\|Result"</code></pre>
+            </div></li>
+            <li><div>Get the last N log entries to see the failure reason.
+              <pre><code>sudo journalctl -u &lt;service-name&gt; --since "10 minutes ago"</code></pre>
+            </div></li>
+            <li><div>Check the Restart= policy in the unit file.
+              <pre><code>systemctl cat &lt;service-name&gt; | grep -i restart</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Stop the restart loop to investigate without systemd restarting it:
+sudo systemctl stop &lt;service-name&gt;
+
+# Run the binary manually to see the real error:
+sudo -u &lt;service-user&gt; /path/to/binary --options
+
+# If it's a config error, fix it and restart:
+sudo systemctl start &lt;service-name&gt;
+
+# Increase StartLimitIntervalSec/StartLimitBurst to allow more restarts
+# while debugging (edit unit file via: sudo systemctl edit &lt;service&gt;)</code></pre>
+        </div>
+      </div>
+
+      <!-- S18 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">SVC-03</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Cron Job Not Running — Silent Failure</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">crontab · syslog · mail</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Scheduled task does not execute. Backup, report, or cleanup job silently skipped. No output or error visible. Cron is running, but the specific job is not firing.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Verify the cron entry syntax.
+              <pre><code>crontab -l
+sudo crontab -l -u &lt;user&gt;</code></pre>
+            </div></li>
+            <li><div>Check cron execution logs.
+              <pre><code>grep CRON /var/log/syslog | tail -30
+sudo journalctl -u cron --since "1 hour ago"</code></pre>
+            </div></li>
+            <li><div>Check if cron daemon is running.
+              <pre><code>sudo systemctl status cron</code></pre>
+            </div></li>
+            <li><div>Test the exact command manually as the cron user.
+              <pre><code>sudo -u &lt;user&gt; /path/to/script.sh</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Common fix 1: PATH issue — add PATH at the top of crontab:
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# Common fix 2: Redirect output to capture errors:
+* * * * * /path/to/script.sh >> /tmp/cron_output.log 2>&1
+
+# Common fix 3: Use absolute paths in the script:
+# BAD:  mysql -u root ...
+# GOOD: /usr/bin/mysql -u root ...
+
+# Validate cron syntax online or use:
+echo "30 2 * * * /path/to/script.sh" | crontab -</code></pre>
+        </div>
+      </div>
+
+      <!-- S19 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">SVC-04</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Failed Service Dependency — Unit Waiting on Another</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">systemctl · After= · Requires=</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p>Service appears to start but immediately stops waiting. Another service it depends on (database, network, cache) has not started. Exit reason shows <code>start-limit-hit</code> or dependency failure.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>List all failed units.
+              <pre><code>systemctl --failed</code></pre>
+            </div></li>
+            <li><div>Check the dependency graph for the service.
+              <pre><code>systemctl list-dependencies &lt;service-name&gt;</code></pre>
+            </div></li>
+            <li><div>Check status of each dependency.
+              <pre><code>sudo systemctl status mysql
+sudo systemctl status network-online.target</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Start the dependency first, then the service:
+sudo systemctl start mysql
+sudo systemctl start &lt;app-service&gt;
+
+# If dependency ordering is wrong in the unit file, fix it:
+sudo systemctl edit &lt;service-name&gt;
+# Add under [Unit]:
+# After=mysql.service network-online.target
+# Wants=mysql.service
+
+sudo systemctl daemon-reload
+sudo systemctl restart &lt;service-name&gt;</code></pre>
+        </div>
+      </div>
+
+      <!-- S20 -->
+      <div class="scenario">
+        <div class="scenario-header">
+          <span class="scenario-num">SVC-05</span>
+          <div class="scenario-meta">
+            <div class="scenario-title">Log Flooding — journald Consuming All Disk Space</div>
+            <div class="scenario-tags">
+              <span class="tag tag-sev-med">Medium</span>
+              <span class="tag tag-category">journalctl · journald.conf</span>
+            </div>
+          </div>
+          <span class="scenario-chevron">▶</span>
+        </div>
+        <div class="scenario-body">
+          <h4>Symptoms</h4>
+          <p><code>/var/log/journal</code> or <code>/run/log/journal</code> is consuming gigabytes. A chatty service is emitting thousands of log entries per second. Disk fills up causing service crashes.</p>
+
+          <h4>Diagnosis Steps</h4>
+          <ol class="step-list">
+            <li><div>Check total journal size.
+              <pre><code>sudo journalctl --disk-usage</code></pre>
+            </div></li>
+            <li><div>Find the noisiest service.
+              <pre><code>sudo journalctl --since "1 hour ago" | awk '{print $5}' | sort | uniq -c | sort -rn | head -10</code></pre>
+            </div></li>
+            <li><div>View the high-volume service log to understand why.
+              <pre><code>sudo journalctl -u &lt;noisy-service&gt; -n 50</code></pre>
+            </div></li>
+          </ol>
+
+          <h4>Resolution</h4>
+          <pre><code># Immediate cleanup — keep only last 7 days:
+sudo journalctl --vacuum-time=7d
+
+# Or limit by size (keep last 500 MB):
+sudo journalctl --vacuum-size=500M
+
+# Permanent cap in /etc/systemd/journald.conf:
+sudo tee -a /etc/systemd/journald.conf &lt;&lt; EOF
+SystemMaxUse=500M
+MaxFileSec=7day
+RateLimitIntervalSec=30s
+RateLimitBurst=1000
+EOF
+
+sudo systemctl restart systemd-journald</code></pre>
+        </div>
+      </div>
+
+    </div><!-- /services -->
+
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- BASH ONE-LINERS                                  -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="page" id="oneliners">
+      <div class="page-header">
+        <h2>⚡ Bash One-liners</h2>
+        <p>Reusable triage commands for L1 support staff — copy, paste, run.</p>
+      </div>
+
+      <h3 style="font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px;">Disk &amp; Filesystem</h3>
+      <table class="oneliners-table">
+        <thead>
+          <tr><th>Task</th><th>Command</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Disk usage summary</td><td><code>df -hT</code></td></tr>
+          <tr><td>Top 10 directories by size</td><td><code>du -ahx / 2>/dev/null | sort -rh | head -10</code></td></tr>
+          <tr><td>Find files larger than 1 GB</td><td><code>find / -xdev -type f -size +1G -ls 2>/dev/null</code></td></tr>
+          <tr><td>Check inode usage</td><td><code>df -ih</code></td></tr>
+          <tr><td>Deleted files held open by processes</td><td><code>lsof +L1 | awk 'NR==1 || $7 < 1'</code></td></tr>
+          <tr><td>Vacuum journal logs older than 7 days</td><td><code>sudo journalctl --vacuum-time=7d</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:24px 0 12px;">Processes</h3>
+      <table class="oneliners-table">
+        <thead>
+          <tr><th>Task</th><th>Command</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Top 10 processes by CPU</td><td><code>ps aux --sort=-%cpu | head -11</code></td></tr>
+          <tr><td>Top 10 processes by memory</td><td><code>ps aux --sort=-%mem | head -11</code></td></tr>
+          <tr><td>Count zombie processes</td><td><code>ps aux | awk '$8=="Z"' | wc -l</code></td></tr>
+          <tr><td>Kill all processes by name</td><td><code>pkill -f &lt;process-name&gt;</code></td></tr>
+          <tr><td>Watch CPU/mem of one process</td><td><code>watch -n1 "ps -p &lt;PID&gt; -o pid,pcpu,pmem,cmd"</code></td></tr>
+          <tr><td>Check OOM kill in last hour</td><td><code>sudo dmesg | grep -i "killed process" | tail -10</code></td></tr>
+          <tr><td>Open file descriptors for PID</td><td><code>ls /proc/&lt;PID&gt;/fd | wc -l</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:24px 0 12px;">Networking</h3>
+      <table class="oneliners-table">
+        <thead>
+          <tr><th>Task</th><th>Command</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Check all listening ports</td><td><code>ss -tlnp</code></td></tr>
+          <tr><td>Check established connections</td><td><code>ss -tnp state established</code></td></tr>
+          <tr><td>Find process using a port</td><td><code>sudo fuser -n tcp &lt;PORT&gt;</code></td></tr>
+          <tr><td>Test port reachability</td><td><code>curl -sv telnet://&lt;host&gt;:&lt;port&gt;</code></td></tr>
+          <tr><td>Trace route to host</td><td><code>traceroute -n &lt;host&gt;</code></td></tr>
+          <tr><td>Capture packets on a port</td><td><code>sudo tcpdump -i any port &lt;PORT&gt; -nn -c 50</code></td></tr>
+          <tr><td>DNS lookup with timing</td><td><code>dig &lt;hostname&gt; | grep -E "time|ANSWER"</code></td></tr>
+          <tr><td>Check open ports on remote host</td><td><code>nmap -sT -p 1-65535 &lt;host&gt;</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:24px 0 12px;">Services &amp; Logs</h3>
+      <table class="oneliners-table">
+        <thead>
+          <tr><th>Task</th><th>Command</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>List all failed services</td><td><code>systemctl --failed</code></td></tr>
+          <tr><td>Live log stream for a service</td><td><code>sudo journalctl -u &lt;service&gt; -f</code></td></tr>
+          <tr><td>Logs since last boot</td><td><code>sudo journalctl -b -u &lt;service&gt;</code></td></tr>
+          <tr><td>Last 100 lines of any log file</td><td><code>tail -100 /var/log/&lt;app&gt;.log</code></td></tr>
+          <tr><td>Grep log for ERROR lines</td><td><code>grep -i "error\|exception\|fail" /var/log/&lt;app&gt;.log | tail -30</code></td></tr>
+          <tr><td>Check cron execution history</td><td><code>grep CRON /var/log/syslog | tail -20</code></td></tr>
+          <tr><td>Find which service owns a port</td><td><code>sudo ss -tlnp | grep :&lt;PORT&gt;</code></td></tr>
+          <tr><td>Journal disk usage</td><td><code>sudo journalctl --disk-usage</code></td></tr>
+        </tbody>
+      </table>
+    </div><!-- /oneliners -->
+
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- COMMON MISTAKES                                  -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="page" id="mistakes">
+      <div class="page-header">
+        <h2>⚠️ Common Mistakes Appendix</h2>
+        <p>Misconfigurations responsible for the majority of first-response support tickets. Check these first before deep investigation.</p>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-title">Wrong File Permissions — Too Restrictive or Too Permissive</div>
+        <p style="font-size:14px;color:var(--muted);margin:4px 0 8px;">Setting <code>chmod 777</code> on everything "to fix it" is a security risk. Setting <code>600</code> on a directory makes it inaccessible.</p>
+        <div class="fix-card">
+          <strong>✓ Fix:</strong> Use <code>644</code> for files (owner rw, group/other r), <code>755</code> for directories and executables. Use <code>640</code> for config files with secrets. Always check parent directory execute bits — you need <code>x</code> on every directory in the path.
+          <pre style="margin-top:8px;"><code>find /var/www -type f -exec chmod 644 {} \;
+find /var/www -type d -exec chmod 755 {} \;</code></pre>
+        </div>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-title">Missing or Wrong Environment Variables</div>
+        <p style="font-size:14px;color:var(--muted);margin:4px 0 8px;">Application works when run manually but fails under systemd because the service environment does not inherit the user's shell environment (<code>JAVA_HOME</code>, <code>DATABASE_URL</code>, etc.).</p>
+        <div class="fix-card">
+          <strong>✓ Fix:</strong> Set environment variables explicitly in the systemd unit file.
+          <pre style="margin-top:8px;"><code># /etc/systemd/system/myapp.service [Service] section:
+Environment="JAVA_HOME=/usr/lib/jvm/java-17"
+Environment="DATABASE_URL=jdbc:mysql://localhost:3306/mydb"
+# Or load from a file:
+EnvironmentFile=/etc/myapp/env.conf</code></pre>
+        </div>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-title">Port Binding Conflicts — Service Configured on Wrong or Taken Port</div>
+        <p style="font-size:14px;color:var(--muted);margin:4px 0 8px;">Deploying a new service on port 8080 without checking whether another process already owns that port. Also common: accidentally starting two instances of the same service.</p>
+        <div class="fix-card">
+          <strong>✓ Fix:</strong> Always check before configuring a port.
+          <pre style="margin-top:8px;"><code>ss -tlnp | grep :8080
+# If occupied, pick a free port or stop the conflicting service.</code></pre>
+        </div>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-title">Cron Jobs Without Absolute Paths</div>
+        <p style="font-size:14px;color:var(--muted);margin:4px 0 8px;">Cron runs with a minimal <code>PATH</code> (<code>/usr/bin:/bin</code>). Commands like <code>mysql</code>, <code>python3</code>, or <code>node</code> that work in a shell will silently fail in cron.</p>
+        <div class="fix-card">
+          <strong>✓ Fix:</strong> Use full paths in cron scripts and redirect output.
+          <pre style="margin-top:8px;"><code># In crontab, set PATH explicitly:
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# In the script, use absolute paths:
+/usr/bin/python3 /opt/scripts/backup.py >> /var/log/backup.log 2>&1</code></pre>
+        </div>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-title">Forgetting to Run systemctl daemon-reload After Editing Unit Files</div>
+        <p style="font-size:14px;color:var(--muted);margin:4px 0 8px;">Editing <code>/etc/systemd/system/myapp.service</code> and then restarting the service — systemd still loads the old cached unit. Changes appear to have no effect.</p>
+        <div class="fix-card">
+          <strong>✓ Fix:</strong> Always reload after editing.
+          <pre style="margin-top:8px;"><code>sudo systemctl daemon-reload
+sudo systemctl restart myapp</code></pre>
+        </div>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-title">Wrong File Owner on Config or Data Directory</div>
+        <p style="font-size:14px;color:var(--muted);margin:4px 0 8px;">Creating directories as <code>root</code> that the service needs to write to as <code>www-data</code> or <code>appuser</code>. Service starts but fails on first write.</p>
+        <div class="fix-card">
+          <strong>✓ Fix:</strong> Check the user the service runs as and ensure ownership matches.
+          <pre style="margin-top:8px;"><code># Who does the service run as?
+systemctl show myapp -p User
+
+# Fix ownership:
+sudo chown -R appuser:appuser /var/lib/myapp</code></pre>
+        </div>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-title">Firewall Rules Not Persisted After Reboot</div>
+        <p style="font-size:14px;color:var(--muted);margin:4px 0 8px;">Adding <code>iptables</code> rules directly without saving them. Rules disappear on reboot causing mystery outages.</p>
+        <div class="fix-card">
+          <strong>✓ Fix:</strong> Use <code>ufw</code> which persists rules automatically, or save iptables rules.
+          <pre style="margin-top:8px;"><code># Preferred (ufw handles persistence):
+sudo ufw allow 443/tcp
+
+# For raw iptables — save and restore:
+sudo iptables-save > /etc/iptables/rules.v4</code></pre>
+        </div>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-title">Service Bound to 127.0.0.1 — Not Accessible Remotely</div>
+        <p style="font-size:14px;color:var(--muted);margin:4px 0 8px;">Developers test locally with <code>localhost</code> bindings then deploy without changing the bind address. Port is open, firewall is clear, but remote connections never arrive at the application.</p>
+        <div class="fix-card">
+          <strong>✓ Fix:</strong> Confirm the service binds to <code>0.0.0.0</code> for all interfaces or the specific interface IP.
+          <pre style="margin-top:8px;"><code># Check what address the service is bound to:
+ss -tlnp | grep &lt;PORT&gt;
+
+# Spring Boot: application.properties
+server.address=0.0.0.0
+
+# Node.js: app.listen(PORT, '0.0.0.0', ...)
+
+# nginx: listen 0.0.0.0:80;</code></pre>
+        </div>
+      </div>
+
+    </div><!-- /mistakes -->
+
+  </main>
+</div>
+
+<script src="assets/js/app.js"></script>
+</body>
+</html>
